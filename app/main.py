@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from app.proxy import forward_chat
 from app.database import init_db, log_request
+from app.stats import get_summary, get_latency_stats, get_cost_over_time
 
 app = FastAPI(title="LLMOps Monitor")
 
@@ -60,3 +61,15 @@ async def chat(request: ChatRequest):
         latency_ms=result["latency_ms"],
         tokens=result["tokens"],
     )
+
+@app.get("/stats/summary")
+async def stats_summary():
+    return get_summary()
+
+@app.get("/stats/latency")
+async def stats_latency():
+    return get_latency_stats()
+
+@app.get("/stats/cost-over-time")
+async def stats_cost_over_time():
+    return get_cost_over_time()
