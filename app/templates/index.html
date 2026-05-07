@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LLMOps Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -14,18 +15,8 @@
       padding: 2rem;
     }
 
-    h1 {
-      font-size: 1.4rem;
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-      color: #fff;
-    }
-
-    .subtitle {
-      font-size: 0.85rem;
-      color: #6e7681;
-      margin-bottom: 2rem;
-    }
+    h1 { font-size: 1.4rem; font-weight: 600; color: #fff; margin-bottom: 0.25rem; }
+    .subtitle { font-size: 0.85rem; color: #6e7681; margin-bottom: 2rem; }
 
     .cards {
       display: grid;
@@ -49,24 +40,97 @@
       margin-bottom: 0.5rem;
     }
 
-    .card-value {
-      font-size: 1.8rem;
-      font-weight: 600;
-      color: #fff;
-    }
-
-    .card-sub {
-      font-size: 0.8rem;
-      color: #6e7681;
-      margin-top: 0.25rem;
-    }
+    .card-value { font-size: 1.8rem; font-weight: 600; color: #fff; }
+    .card-sub { font-size: 0.8rem; color: #6e7681; margin-top: 0.25rem; }
 
     .card.green  .card-value { color: #3fb950; }
     .card.blue   .card-value { color: #58a6ff; }
     .card.amber  .card-value { color: #d29922; }
     .card.purple .card-value { color: #bc8cff; }
 
-    .loading { color: #6e7681; font-size: 0.85rem; }
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1rem;
+    }
+
+    .chart-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+
+    .chart-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #8b949e;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #6e7681;
+      font-size: 0.85rem;
+      padding: 2rem 0;
+    }
+    .section-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 2rem 0 0.75rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+thead tr {
+  background: #1c2128;
+}
+
+th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6e7681;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #30363d;
+}
+
+td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #e1e4e8;
+  border-bottom: 1px solid #21262d;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover {
+  background: #1c2128;
+}
+
+.model-name {
+  font-weight: 500;
+  color: #58a6ff;
+}
+
+.cost-cell  { color: #3fb950; }
+.lat-cell   { color: #d29922; }
   </style>
 </head>
 <body>
@@ -97,47 +161,177 @@
     </div>
   </div>
 
+  <div class="charts">
+    <div class="chart-card">
+      <div class="chart-title">Daily Cost (USD equivalent)</div>
+      <div id="cost-empty" class="empty-state" style="display:none">Not enough data yet</div>
+      <canvas id="cost-chart" height="120"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Latency over time (ms)</div>
+      <div id="latency-empty" class="empty-state" style="display:none">Not enough data yet</div>
+      <canvas id="latency-chart" height="120"></canvas>
+    </div>
+  </div>
+  <div class="section-title">Model breakdown</div>
+<table>
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th>Requests</th>
+      <th>Total tokens</th>
+      <th>Avg latency</th>
+      <th>Est. cost</th>
+    </tr>
+  </thead>
+  <tbody id="model-table-body">
+    <tr><td colspan="5" style="color:#6e7681;text-align:center;">Loading...</td></tr>
+  </tbody>
+</table>
+
   <script>
+    let costChart = null;
+    let latencyChart = null;
+
+    const chartDefaults = {
+      responsive: true,
+      plugins: { legend: { labels: { color: '#8b949e', font: { size: 12 } } } },
+      scales: {
+        x: { ticks: { color: '#6e7681' }, grid: { color: '#21262d' } },
+        y: { ticks: { color: '#6e7681' }, grid: { color: '#21262d' } },
+      }
+    };
+    
+
     async function loadStats() {
       try {
-        const [summary, latency] = await Promise.all([
+        const [summary, latency, costTime, latencyTime, models] = await Promise.all([
           fetch('/stats/summary').then(r => r.json()),
           fetch('/stats/latency').then(r => r.json()),
+          fetch('/stats/cost-over-time').then(r => r.json()),
+          fetch('/stats/latency-over-time').then(r => r.json()),
+          fetch('/stats/model-breakdown').then(r => r.json()),
         ]);
 
+        // --- metric cards ---
         document.getElementById('total-requests').textContent =
           summary.total_requests ?? '0';
-
         document.getElementById('top-model').textContent =
           summary.top_model ? `top model: ${summary.top_model}` : '—';
-
         document.getElementById('total-cost').textContent =
-          summary.total_cost_usd != null
-            ? '$' + summary.total_cost_usd.toFixed(6)
-            : '$0.000000';
-
+          '$' + (summary.total_cost_usd ?? 0).toFixed(6);
         document.getElementById('avg-latency').textContent =
           summary.avg_latency_ms != null
-            ? (summary.avg_latency_ms / 1000).toFixed(2) + 's'
-            : '—';
-
+            ? (summary.avg_latency_ms / 1000).toFixed(2) + 's' : '—';
         document.getElementById('p95-latency').textContent =
           latency.p95 != null
-            ? `p95: ${(latency.p95 / 1000).toFixed(2)}s`
-            : '—';
-
+            ? `p95: ${(latency.p95 / 1000).toFixed(2)}s` : '—';
         document.getElementById('total-tokens').textContent =
           summary.total_tokens ?? '0';
-
         document.getElementById('last-updated').textContent =
           'Last updated: ' + new Date().toLocaleTimeString();
+
+        // --- cost chart ---
+        const costCanvas = document.getElementById('cost-chart');
+        const costEmpty  = document.getElementById('cost-empty');
+
+        if (costTime.length < 2) {
+          costCanvas.style.display = 'none';
+          costEmpty.style.display  = 'block';
+        } else {
+          costCanvas.style.display = 'block';
+          costEmpty.style.display  = 'none';
+          const costData = {
+            labels: costTime.map(d => d.day),
+            datasets: [{
+              label: 'Daily cost (USD)',
+              data: costTime.map(d => d.cost),
+              borderColor: '#3fb950',
+              backgroundColor: 'rgba(63,185,80,0.1)',
+              tension: 0.3,
+              fill: true,
+            }]
+          };
+          if (costChart) { costChart.destroy(); }
+          costChart = new Chart(costCanvas, {
+            type: 'line',
+            data: costData,
+            options: {
+              ...chartDefaults,
+              scales: {
+                ...chartDefaults.scales,
+                y: {
+                  ...chartDefaults.scales.y,
+                  ticks: {
+                    color: '#6e7681',
+                    callback: v => '$' + v.toFixed(6)
+                  }
+                }
+              }
+            }
+          });
+        }
+
+        // --- latency chart ---
+        const latCanvas = document.getElementById('latency-chart');
+        const latEmpty  = document.getElementById('latency-empty');
+
+        if (latencyTime.length < 2) {
+          latCanvas.style.display = 'none';
+          latEmpty.style.display  = 'block';
+        } else {
+          latCanvas.style.display = 'block';
+          latEmpty.style.display  = 'none';
+          const latData = {
+            labels: latencyTime.map(d => d.day),
+            datasets: [
+              {
+                label: 'Avg latency (ms)',
+                data: latencyTime.map(d => d.avg),
+                borderColor: '#58a6ff',
+                backgroundColor: 'rgba(88,166,255,0.1)',
+                tension: 0.3,
+                fill: true,
+              },
+              {
+                label: 'Max latency (ms)',
+                data: latencyTime.map(d => d.max),
+                borderColor: '#d29922',
+                backgroundColor: 'transparent',
+                tension: 0.3,
+                borderDash: [4, 4],
+              }
+            ]
+          };
+          if (latencyChart) { latencyChart.destroy(); }
+          latencyChart = new Chart(latCanvas, {
+            type: 'line',
+            data: latData,
+            options: chartDefaults,
+          });
+        }
+
+        // --- model table ---
+        const tbody = document.getElementById('model-table-body');
+        if (!models.length) {
+          tbody.innerHTML = `<tr><td colspan="5" style="color:#6e7681;text-align:center;">No data yet</td></tr>`;
+        } else {
+          tbody.innerHTML = models.map(m => `
+          <tr>
+            <td class="model-name">${m.model}</td>
+            <td>${m.total_requests}</td>
+            <td>${m.total_tokens}</td>
+            <td class="lat-cell">${(m.avg_latency_ms / 1000).toFixed(2)}s</td>
+            <td class="cost-cell">$${m.total_cost.toFixed(6)}</td>
+          </tr>
+          `).join('');
+        }
 
       } catch (err) {
         console.error('Failed to load stats:', err);
       }
     }
 
-    // Load on page open, then refresh every 30 seconds
     loadStats();
     setInterval(loadStats, 30000);
   </script>

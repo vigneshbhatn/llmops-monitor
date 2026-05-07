@@ -2,11 +2,12 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from app.proxy import forward_chat
 from app.database import init_db, log_request
-from app.stats import get_summary, get_latency_stats, get_cost_over_time
+from app.stats import get_summary, get_latency_stats, get_cost_over_time, get_latency_over_time, get_model_breakdown
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
+
 
 app = FastAPI(title="LLMOps Monitor")
 
@@ -62,7 +63,7 @@ async def chat(request: ChatRequest):
             tokens={},
             status="error"
         )
-        raise HTTPException(status_code=502, detail=str(e))
+        raise HTTPException(status_code=502, detail=str(e) or repr(e))
         
     # Pull the reply text out of the Ollama response
     reply = result["response"]["choices"][0]["message"]["content"]
@@ -85,3 +86,11 @@ async def stats_latency():
 @app.get("/stats/cost-over-time")
 async def stats_cost_over_time():
     return get_cost_over_time()
+
+@app.get("/stats/latency-over-time")
+async def stats_latency_over_time():
+    return get_latency_over_time()
+
+@app.get("/stats/model-breakdown")
+async def stats_model_breakdown():
+    return get_model_breakdown()

@@ -78,3 +78,54 @@ def get_cost_over_time():
         {"day": r["day"], "cost": r["daily_cost"], "requests": r["requests"]}
         for r in rows
     ]
+def get_latency_over_time():
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT
+            DATE(timestamp) AS day,
+            ROUND(AVG(latency_ms), 2) AS avg_latency,
+            ROUND(MIN(latency_ms), 2) AS min_latency,
+            ROUND(MAX(latency_ms), 2) AS max_latency
+        FROM request_logs
+        WHERE status = 'success'
+        GROUP BY DATE(timestamp)
+        ORDER BY day ASC
+    """).fetchall()
+    conn.close()
+
+    return [
+        {
+            "day": r["day"],
+            "avg": r["avg_latency"],
+            "min": r["min_latency"],
+            "max": r["max_latency"],
+        }
+        for r in rows
+    ]
+
+def get_model_breakdown():
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT
+            model,
+            COUNT(*)                          AS total_requests,
+            ROUND(SUM(estimated_cost), 6)     AS total_cost,
+            ROUND(AVG(latency_ms), 2)         AS avg_latency,
+            SUM(total_tokens)                 AS total_tokens
+        FROM request_logs
+        WHERE status = 'success'
+        GROUP BY model
+        ORDER BY total_requests DESC
+    """).fetchall()
+    conn.close()
+
+    return [
+        {
+            "model":          r["model"],
+            "total_requests": r["total_requests"],
+            "total_cost":     r["total_cost"],
+            "avg_latency_ms": r["avg_latency"],
+            "total_tokens":   r["total_tokens"],
+        }
+        for r in rows
+    ]
