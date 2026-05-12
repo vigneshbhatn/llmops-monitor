@@ -128,6 +128,34 @@ tbody tr:hover {
   font-weight: 500;
   color: #58a6ff;
 }
+.alert-bar-wrap {
+  margin: 1.5rem 0;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.alert-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #6e7681;
+  margin-bottom: 0.5rem;
+}
+
+.alert-bar-bg {
+  height: 6px;
+  background: #21262d;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.alert-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s, background 0.4s;
+}
 
 .cost-cell  { color: #3fb950; }
 .lat-cell   { color: #d29922; }
@@ -137,6 +165,15 @@ tbody tr:hover {
 
   <h1>LLMOps Monitor</h1>
   <p class="subtitle" id="last-updated">Loading...</p>
+  <div class="alert-bar-wrap">
+    <div class="alert-bar-label">
+      <span>Today's spend</span>
+      <span id="alert-pct">—</span>
+    </div>
+    <div class="alert-bar-bg">
+      <div class="alert-bar-fill" id="alert-bar" style="width:0%"></div>
+    </div>
+  </div>
 
   <div class="cards">
     <div class="card blue">
@@ -211,6 +248,7 @@ tbody tr:hover {
           fetch('/stats/cost-over-time').then(r => r.json()),
           fetch('/stats/latency-over-time').then(r => r.json()),
           fetch('/stats/model-breakdown').then(r => r.json()),
+          fetch('/stats/alert-status').then(r => r.json()),
         ]);
 
         // --- metric cards ---
@@ -326,6 +364,13 @@ tbody tr:hover {
           </tr>
           `).join('');
         }
+        // --- spend alert bar ---
+        const pct     = Math.min(alertStatus.percent_used, 100);
+        const bar     = document.getElementById('alert-bar');
+        const pctLabel = document.getElementById('alert-pct');
+        bar.style.width      = pct + '%';
+        bar.style.background = pct >= 100 ? '#f85149' : pct > 75 ? '#d29922' : '#3fb950';
+        pctLabel.textContent = `$${alertStatus.todays_spend.toFixed(6)} / $${alertStatus.threshold.toFixed(3)} (${alertStatus.percent_used}%)`;
 
       } catch (err) {
         console.error('Failed to load stats:', err);

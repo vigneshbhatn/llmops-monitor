@@ -3,10 +3,12 @@ from pydantic import BaseModel
 from app.proxy import forward_chat
 from app.database import init_db, log_request
 from app.stats import get_summary, get_latency_stats, get_cost_over_time, get_latency_over_time, get_model_breakdown
+from app.alert import check_and_alert, get_todays_spend
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
+import os
 
 
 app = FastAPI(title="LLMOps Monitor")
@@ -55,6 +57,7 @@ async def chat(request: ChatRequest):
             tokens=result["tokens"],
             status="success"
         )
+        await check_and_alert()
     except Exception as e:
         # 👇 log on failure too
         log_request(
@@ -94,3 +97,14 @@ async def stats_latency_over_time():
 @app.get("/stats/model-breakdown")
 async def stats_model_breakdown():
     return get_model_breakdown()
+
+@app.get("/stats/alert-status")
+async def alert_status():
+    spend     = get_todays_spend()
+    threshold = float(os.getenv("SPEND_ALERT_THRESHOLD", "0.001"))
+    return {
+        "todays_spend":  spend,
+        "threshold":     threshold,
+        "exceeded":      spend >= threshold,
+        "percent_used":  round((spend / threshold) * 100, 1) if threshold else 0,
+    }
