@@ -6,21 +6,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "mistral")
+OPENAI_API_KEY  = os.getenv("OPENAI_API_KEY", "")
 
 async def forward_chat(messages: list, model: str = None):
-    model = model or DEFAULT_MODEL
-    payload = {
-        "model": model,
-        "messages": messages,
-    }
+    model = model or os.getenv("DEFAULT_MODEL", "mistral")
+
+    headers = {"Content-Type": "application/json"}
+    if OPENAI_API_KEY:
+        base_url = "https://api.openai.com/v1"
+        headers["Authorization"] = f"Bearer {OPENAI_API_KEY}"
+        model = "gpt-3.5-turbo"  # fallback to cheapest OpenAI model
+    else:
+        base_url = OLLAMA_BASE_URL
+
+    payload = {"model": model, "messages": messages}
 
     start = time.time()
-
-    async with httpx.AsyncClient(timeout=300.0) as client:
+    async with httpx.AsyncClient(timeout=60.0) as client:
         response = await client.post(
-            f"{OLLAMA_BASE_URL}/chat/completions",
+            f"{base_url}/chat/completions",
             json=payload,
+            headers=headers,
         )
         response.raise_for_status()
 
@@ -28,8 +34,8 @@ async def forward_chat(messages: list, model: str = None):
     data = response.json()
 
     return {
-        "response": data,
+        "response":   data,
         "latency_ms": latency_ms,
-        "model": model,
-        "tokens": data.get("usage", {}),
+        "model":      model,
+        "tokens":     data.get("usage", {}),
     }

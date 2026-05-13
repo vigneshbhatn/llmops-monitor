@@ -12,374 +12,595 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #0f1117;
       color: #e1e4e8;
-      padding: 2rem;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
-    h1 { font-size: 1.4rem; font-weight: 600; color: #fff; margin-bottom: 0.25rem; }
-    .subtitle { font-size: 0.85rem; color: #6e7681; margin-bottom: 2rem; }
+    header {
+      padding: 0.75rem 1.5rem;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
 
-    .cards {
+    header h1 { font-size: 1rem; font-weight: 600; color: #fff; }
+    header span { font-size: 0.75rem; color: #6e7681; }
+
+    .layout {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
+      grid-template-columns: 1fr 360px;
+      flex: 1;
+      overflow: hidden;
     }
 
-    .card {
+    /* ── chat panel ── */
+    .chat-panel {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #30363d;
+      overflow: hidden;
+    }
+
+    .model-bar {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .model-bar label { font-size: 0.75rem; color: #6e7681; }
+
+    .model-bar select {
       background: #161b22;
       border: 1px solid #30363d;
-      border-radius: 10px;
-      padding: 1.25rem;
+      color: #e1e4e8;
+      border-radius: 6px;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
     }
 
-    .card-label {
-      font-size: 0.75rem;
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .msg {
+      max-width: 75%;
+      padding: 0.65rem 0.9rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: #1f6feb;
+      color: #fff;
+      border-bottom-right-radius: 3px;
+    }
+
+    .msg.assistant {
+      align-self: flex-start;
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #e1e4e8;
+      border-bottom-left-radius: 3px;
+    }
+
+    .msg.assistant .meta {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid #30363d;
+      font-size: 0.72rem;
       color: #6e7681;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.5rem;
     }
 
-    .card-value { font-size: 1.8rem; font-weight: 600; color: #fff; }
-    .card-sub { font-size: 0.8rem; color: #6e7681; margin-top: 0.25rem; }
+    .msg.assistant .meta span { display: flex; align-items: center; gap: 3px; }
 
-    .card.green  .card-value { color: #3fb950; }
-    .card.blue   .card-value { color: #58a6ff; }
-    .card.amber  .card-value { color: #d29922; }
-    .card.purple .card-value { color: #bc8cff; }
-
-    .charts {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 1rem;
-    }
-
-    .chart-card {
+    .msg.thinking {
+      align-self: flex-start;
       background: #161b22;
       border: 1px solid #30363d;
-      border-radius: 10px;
-      padding: 1.25rem;
+      color: #6e7681;
+      font-style: italic;
+      font-size: 0.8rem;
     }
 
-    .chart-title {
-      font-size: 0.85rem;
+    .input-bar {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid #30363d;
+      display: flex;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .input-bar textarea {
+      flex: 1;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #e1e4e8;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      resize: none;
+      height: 40px;
+      max-height: 120px;
+      overflow-y: auto;
+      line-height: 1.4;
+    }
+
+    .input-bar textarea:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+
+    .send-btn {
+      background: #1f6feb;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      padding: 0 1rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .send-btn:hover { background: #388bfd; }
+    .send-btn:disabled { background: #21262d; color: #6e7681; cursor: not-allowed; }
+
+    /* ── stats panel ── */
+    .stats-panel {
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .stats-title {
+      font-size: 0.7rem;
       font-weight: 500;
-      color: #8b949e;
-      margin-bottom: 1rem;
+      color: #6e7681;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
     }
 
-    .empty-state {
-      text-align: center;
+    .mini-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .mini-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 0.75rem;
+    }
+
+    .mini-card .label {
+      font-size: 0.7rem;
       color: #6e7681;
-      font-size: 0.85rem;
-      padding: 2rem 0;
+      margin-bottom: 0.25rem;
     }
-    .section-title {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #8b949e;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 2rem 0 0.75rem;
-}
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 10px;
-  overflow: hidden;
-}
+    .mini-card .value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+    }
 
-thead tr {
-  background: #1c2128;
-}
+    .mini-card.green .value { color: #3fb950; }
+    .mini-card.blue  .value { color: #58a6ff; }
+    .mini-card.amber .value { color: #d29922; }
+    .mini-card.purple .value { color: #bc8cff; }
 
-th {
-  text-align: left;
-  padding: 0.75rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #6e7681;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid #30363d;
-}
+    .last-req {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 0.75rem;
+    }
 
-td {
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  color: #e1e4e8;
-  border-bottom: 1px solid #21262d;
-}
+    .last-req .row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid #21262d;
+    }
 
-tr:last-child td {
-  border-bottom: none;
-}
+    .last-req .row:last-child { border-bottom: none; }
+    .last-req .row .k { color: #6e7681; }
+    .last-req .row .v { color: #e1e4e8; font-weight: 500; }
+    .last-req .row .v.green  { color: #3fb950; }
+    .last-req .row .v.amber  { color: #d29922; }
+    .last-req .row .v.purple { color: #bc8cff; }
 
-tbody tr:hover {
-  background: #1c2128;
-}
+    .chart-wrap {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 0.75rem;
+    }
 
-.model-name {
-  font-weight: 500;
-  color: #58a6ff;
-}
-.alert-bar-wrap {
-  margin: 1.5rem 0;
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 10px;
-  padding: 1.25rem;
-}
+    .alert-bar-bg {
+      height: 5px;
+      background: #21262d;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 0.4rem;
+    }
 
-.alert-bar-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: #6e7681;
-  margin-bottom: 0.5rem;
-}
+    .alert-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s, background 0.4s;
+    }
 
-.alert-bar-bg {
-  height: 6px;
-  background: #21262d;
-  border-radius: 3px;
-  overflow: hidden;
-}
+    .alert-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: #6e7681;
+      margin-top: 0.3rem;
+    }
 
-.alert-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.4s, background 0.4s;
-}
+    /* model table */
+    .model-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
 
-.cost-cell  { color: #3fb950; }
-.lat-cell   { color: #d29922; }
+    .model-table th {
+      text-align: left;
+      color: #6e7681;
+      padding: 0.3rem 0.4rem;
+      border-bottom: 1px solid #30363d;
+    }
+
+    .model-table td {
+      padding: 0.4rem;
+      border-bottom: 1px solid #21262d;
+      color: #e1e4e8;
+    }
+
+    .model-table tr:last-child td { border-bottom: none; }
+    .model-table .blue  { color: #58a6ff; font-weight: 500; }
+    .model-table .green { color: #3fb950; }
+    .model-table .amber { color: #d29922; }
   </style>
 </head>
 <body>
 
-  <h1>LLMOps Monitor</h1>
-  <p class="subtitle" id="last-updated">Loading...</p>
-  <div class="alert-bar-wrap">
-    <div class="alert-bar-label">
-      <span>Today's spend</span>
-      <span id="alert-pct">—</span>
-    </div>
-    <div class="alert-bar-bg">
-      <div class="alert-bar-fill" id="alert-bar" style="width:0%"></div>
-    </div>
-  </div>
+<header>
+  <h1>⚡ LLMOps Monitor</h1>
+  <span id="last-updated">—</span>
+</header>
 
-  <div class="cards">
-    <div class="card blue">
-      <div class="card-label">Total Requests</div>
-      <div class="card-value" id="total-requests">—</div>
-      <div class="card-sub" id="top-model">—</div>
-    </div>
-    <div class="card green">
-      <div class="card-label">Estimated Cost</div>
-      <div class="card-value" id="total-cost">—</div>
-      <div class="card-sub">hypothetical OpenAI equiv.</div>
-    </div>
-    <div class="card amber">
-      <div class="card-label">Avg Latency</div>
-      <div class="card-value" id="avg-latency">—</div>
-      <div class="card-sub" id="p95-latency">—</div>
-    </div>
-    <div class="card purple">
-      <div class="card-label">Total Tokens</div>
-      <div class="card-value" id="total-tokens">—</div>
-      <div class="card-sub">across all requests</div>
-    </div>
-  </div>
+<div class="layout">
 
-  <div class="charts">
-    <div class="chart-card">
-      <div class="chart-title">Daily Cost (USD equivalent)</div>
-      <div id="cost-empty" class="empty-state" style="display:none">Not enough data yet</div>
-      <canvas id="cost-chart" height="120"></canvas>
+  <!-- chat panel -->
+  <div class="chat-panel">
+    <div class="model-bar">
+      <label>Model</label>
+      <select id="model-select">
+        <option value="mistral">mistral</option>
+        <option value="llama3">llama3</option>
+        <option value="gemma2">gemma2</option>
+        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+      </select>
     </div>
-    <div class="chart-card">
-      <div class="chart-title">Latency over time (ms)</div>
-      <div id="latency-empty" class="empty-state" style="display:none">Not enough data yet</div>
-      <canvas id="latency-chart" height="120"></canvas>
+
+    <div class="messages" id="messages">
+      <div class="msg assistant">
+        Hey! Send a message to test the proxy. Token usage and latency will appear below each reply.
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <textarea
+        id="input"
+        placeholder="Send a message… (Enter to send, Shift+Enter for newline)"
+        rows="1"
+      ></textarea>
+      <button class="send-btn" id="send-btn">Send</button>
     </div>
   </div>
-  <div class="section-title">Model breakdown</div>
-<table>
-  <thead>
-    <tr>
-      <th>Model</th>
-      <th>Requests</th>
-      <th>Total tokens</th>
-      <th>Avg latency</th>
-      <th>Est. cost</th>
-    </tr>
-  </thead>
-  <tbody id="model-table-body">
-    <tr><td colspan="5" style="color:#6e7681;text-align:center;">Loading...</td></tr>
-  </tbody>
-</table>
 
-  <script>
-    let costChart = null;
-    let latencyChart = null;
+  <!-- stats panel -->
+  <div class="stats-panel">
 
-    const chartDefaults = {
-      responsive: true,
-      plugins: { legend: { labels: { color: '#8b949e', font: { size: 12 } } } },
-      scales: {
-        x: { ticks: { color: '#6e7681' }, grid: { color: '#21262d' } },
-        y: { ticks: { color: '#6e7681' }, grid: { color: '#21262d' } },
-      }
-    };
-    
+    <div class="stats-title">Overall stats</div>
+    <div class="mini-cards">
+      <div class="mini-card blue">
+        <div class="label">Requests</div>
+        <div class="value" id="s-requests">—</div>
+      </div>
+      <div class="mini-card purple">
+        <div class="label">Tokens</div>
+        <div class="value" id="s-tokens">—</div>
+      </div>
+      <div class="mini-card amber">
+        <div class="label">Avg latency</div>
+        <div class="value" id="s-latency">—</div>
+      </div>
+      <div class="mini-card green">
+        <div class="label">Total cost</div>
+        <div class="value" id="s-cost">—</div>
+      </div>
+    </div>
 
-    async function loadStats() {
-      try {
-        const [summary, latency, costTime, latencyTime, models] = await Promise.all([
-          fetch('/stats/summary').then(r => r.json()),
-          fetch('/stats/latency').then(r => r.json()),
-          fetch('/stats/cost-over-time').then(r => r.json()),
-          fetch('/stats/latency-over-time').then(r => r.json()),
-          fetch('/stats/model-breakdown').then(r => r.json()),
-          fetch('/stats/alert-status').then(r => r.json()),
-        ]);
+    <div class="stats-title">Last request</div>
+    <div class="last-req" id="last-req">
+      <div class="row"><span class="k">Model</span><span class="v" id="lr-model">—</span></div>
+      <div class="row"><span class="k">Latency</span><span class="v amber" id="lr-latency">—</span></div>
+      <div class="row"><span class="k">Prompt tokens</span><span class="v purple" id="lr-prompt">—</span></div>
+      <div class="row"><span class="k">Completion tokens</span><span class="v purple" id="lr-completion">—</span></div>
+      <div class="row"><span class="k">Total tokens</span><span class="v purple" id="lr-total">—</span></div>
+      <div class="row"><span class="k">Est. cost</span><span class="v green" id="lr-cost">—</span></div>
+    </div>
 
-        // --- metric cards ---
-        document.getElementById('total-requests').textContent =
-          summary.total_requests ?? '0';
-        document.getElementById('top-model').textContent =
-          summary.top_model ? `top model: ${summary.top_model}` : '—';
-        document.getElementById('total-cost').textContent =
-          '$' + (summary.total_cost_usd ?? 0).toFixed(6);
-        document.getElementById('avg-latency').textContent =
-          summary.avg_latency_ms != null
-            ? (summary.avg_latency_ms / 1000).toFixed(2) + 's' : '—';
-        document.getElementById('p95-latency').textContent =
-          latency.p95 != null
-            ? `p95: ${(latency.p95 / 1000).toFixed(2)}s` : '—';
-        document.getElementById('total-tokens').textContent =
-          summary.total_tokens ?? '0';
-        document.getElementById('last-updated').textContent =
-          'Last updated: ' + new Date().toLocaleTimeString();
+    <div class="stats-title">Daily spend vs threshold</div>
+    <div class="chart-wrap">
+      <div class="alert-bar-bg">
+        <div class="alert-bar-fill" id="alert-bar" style="width:0%"></div>
+      </div>
+      <div class="alert-label">
+        <span id="alert-spend">$0.000000</span>
+        <span id="alert-pct">0%</span>
+      </div>
+    </div>
 
-        // --- cost chart ---
-        const costCanvas = document.getElementById('cost-chart');
-        const costEmpty  = document.getElementById('cost-empty');
+    <div class="stats-title">Latency trend</div>
+    <div class="chart-wrap">
+      <canvas id="latency-chart" height="130"></canvas>
+    </div>
 
-        if (costTime.length < 2) {
-          costCanvas.style.display = 'none';
-          costEmpty.style.display  = 'block';
-        } else {
-          costCanvas.style.display = 'block';
-          costEmpty.style.display  = 'none';
-          const costData = {
-            labels: costTime.map(d => d.day),
-            datasets: [{
-              label: 'Daily cost (USD)',
-              data: costTime.map(d => d.cost),
-              borderColor: '#3fb950',
-              backgroundColor: 'rgba(63,185,80,0.1)',
-              tension: 0.3,
-              fill: true,
-            }]
-          };
-          if (costChart) { costChart.destroy(); }
-          costChart = new Chart(costCanvas, {
-            type: 'line',
-            data: costData,
-            options: {
-              ...chartDefaults,
-              scales: {
-                ...chartDefaults.scales,
-                y: {
-                  ...chartDefaults.scales.y,
-                  ticks: {
-                    color: '#6e7681',
-                    callback: v => '$' + v.toFixed(6)
-                  }
-                }
-              }
-            }
-          });
-        }
-
-        // --- latency chart ---
-        const latCanvas = document.getElementById('latency-chart');
-        const latEmpty  = document.getElementById('latency-empty');
-
-        if (latencyTime.length < 2) {
-          latCanvas.style.display = 'none';
-          latEmpty.style.display  = 'block';
-        } else {
-          latCanvas.style.display = 'block';
-          latEmpty.style.display  = 'none';
-          const latData = {
-            labels: latencyTime.map(d => d.day),
-            datasets: [
-              {
-                label: 'Avg latency (ms)',
-                data: latencyTime.map(d => d.avg),
-                borderColor: '#58a6ff',
-                backgroundColor: 'rgba(88,166,255,0.1)',
-                tension: 0.3,
-                fill: true,
-              },
-              {
-                label: 'Max latency (ms)',
-                data: latencyTime.map(d => d.max),
-                borderColor: '#d29922',
-                backgroundColor: 'transparent',
-                tension: 0.3,
-                borderDash: [4, 4],
-              }
-            ]
-          };
-          if (latencyChart) { latencyChart.destroy(); }
-          latencyChart = new Chart(latCanvas, {
-            type: 'line',
-            data: latData,
-            options: chartDefaults,
-          });
-        }
-
-        // --- model table ---
-        const tbody = document.getElementById('model-table-body');
-        if (!models.length) {
-          tbody.innerHTML = `<tr><td colspan="5" style="color:#6e7681;text-align:center;">No data yet</td></tr>`;
-        } else {
-          tbody.innerHTML = models.map(m => `
+    <div class="stats-title">Model breakdown</div>
+    <div class="chart-wrap">
+      <table class="model-table">
+        <thead>
           <tr>
-            <td class="model-name">${m.model}</td>
-            <td>${m.total_requests}</td>
-            <td>${m.total_tokens}</td>
-            <td class="lat-cell">${(m.avg_latency_ms / 1000).toFixed(2)}s</td>
-            <td class="cost-cell">$${m.total_cost.toFixed(6)}</td>
+            <th>Model</th>
+            <th>Reqs</th>
+            <th>Avg lat.</th>
+            <th>Cost</th>
           </tr>
-          `).join('');
-        }
-        // --- spend alert bar ---
-        const pct     = Math.min(alertStatus.percent_used, 100);
-        const bar     = document.getElementById('alert-bar');
-        const pctLabel = document.getElementById('alert-pct');
-        bar.style.width      = pct + '%';
-        bar.style.background = pct >= 100 ? '#f85149' : pct > 75 ? '#d29922' : '#3fb950';
-        pctLabel.textContent = `$${alertStatus.todays_spend.toFixed(6)} / $${alertStatus.threshold.toFixed(3)} (${alertStatus.percent_used}%)`;
+        </thead>
+        <tbody id="model-tbody">
+          <tr><td colspan="4" style="color:#6e7681">No data yet</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-      } catch (err) {
-        console.error('Failed to load stats:', err);
+  </div>
+</div>
+
+<script>
+  // ── chat history (for multi-turn context) ──
+  const history = [];
+  let latencyChart = null;
+
+  // ── send message ──
+  async function sendMessage() {
+    const input   = document.getElementById('input');
+    const text    = input.value.trim();
+    const model   = document.getElementById('model-select').value;
+    const sendBtn = document.getElementById('send-btn');
+
+    if (!text) return;
+
+    input.value = '';
+    input.style.height = '40px';
+    sendBtn.disabled = true;
+
+    appendMsg('user', text);
+    history.push({ role: 'user', content: text });
+
+    const thinking = appendMsg('thinking', 'Thinking…');
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: history, model }),
+      });
+
+      const data = await res.json();
+      thinking.remove();
+
+      if (!res.ok) {
+        appendMsg('assistant', '⚠️ Error: ' + (data.detail || 'Unknown error occurred'));
+        return;
       }
+
+      appendMsg('assistant', data.reply, {
+        latency:    data.latency_ms,
+        tokens:     data.tokens,
+        model:      data.model,
+      });
+
+      history.push({ role: 'assistant', content: data.reply });
+
+      // update last request panel immediately
+      updateLastRequest(data);
+
+    } catch (err) {
+      thinking.remove();
+      appendMsg('assistant', '⚠️ Network Error: ' + err.message);
     }
 
-    loadStats();
-    setInterval(loadStats, 30000);
-  </script>
+    sendBtn.disabled = false;
+    await loadStats();
+  }
+
+  function appendMsg(role, text, meta = null) {
+    const messages = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'msg ' + role;
+
+    if (role === 'assistant' && meta) {
+      div.innerHTML = `
+        <div>${escapeHtml(text)}</div>
+        <div class="meta">
+          <span>⏱ ${(meta.latency / 1000).toFixed(2)}s</span>
+          <span>🔤 ${meta.tokens?.prompt_tokens ?? 0} in</span>
+          <span>💬 ${meta.tokens?.completion_tokens ?? 0} out</span>
+          <span>∑ ${meta.tokens?.total_tokens ?? 0}</span>
+        </div>`;
+    } else {
+      div.textContent = text;
+    }
+
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  }
+
+  function escapeHtml(text) {
+    if (text == null) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function updateLastRequest(data) {
+    document.getElementById('lr-model').textContent      = data.model;
+    document.getElementById('lr-latency').textContent    = (data.latency_ms / 1000).toFixed(2) + 's';
+    document.getElementById('lr-prompt').textContent     = data.tokens?.prompt_tokens ?? 0;
+    document.getElementById('lr-completion').textContent = data.tokens?.completion_tokens ?? 0;
+    document.getElementById('lr-total').textContent      = data.tokens?.total_tokens ?? 0;
+
+    // estimate cost for last request display
+    const total   = data.tokens?.total_tokens ?? 0;
+    const cost    = (total / 1000) * 0.0002;
+    document.getElementById('lr-cost').textContent = '$' + cost.toFixed(6);
+  }
+
+  // ── load global stats ──
+  async function loadStats() {
+    try {
+      const [summary, latencyTime, alertStatus, models] = await Promise.all([
+        fetch('/stats/summary').then(r => r.json()),
+        fetch('/stats/latency-over-time').then(r => r.json()),
+        fetch('/stats/alert-status').then(r => r.json()),
+        fetch('/stats/model-breakdown').then(r => r.json()),
+      ]);
+
+      // mini cards
+      document.getElementById('s-requests').textContent = summary.total_requests ?? 0;
+      document.getElementById('s-tokens').textContent   = summary.total_tokens ?? 0;
+      document.getElementById('s-latency').textContent  =
+        summary.avg_latency_ms != null
+          ? (summary.avg_latency_ms / 1000).toFixed(2) + 's' : '—';
+      document.getElementById('s-cost').textContent =
+        '$' + (summary.total_cost_usd ?? 0).toFixed(6);
+
+      // alert bar
+      const pct = Math.min(alertStatus.percent_used, 100);
+      const bar = document.getElementById('alert-bar');
+      bar.style.width      = pct + '%';
+      bar.style.background = pct >= 100 ? '#f85149' : pct > 75 ? '#d29922' : '#3fb950';
+      document.getElementById('alert-spend').textContent =
+        '$' + alertStatus.todays_spend.toFixed(6);
+      document.getElementById('alert-pct').textContent =
+        alertStatus.percent_used + '% of threshold';
+
+      // latency chart
+      const canvas = document.getElementById('latency-chart');
+      if (latencyTime.length >= 1) {
+        const chartData = {
+          labels: latencyTime.map(d => d.day),
+          datasets: [{
+            label: 'Avg latency (ms)',
+            data: latencyTime.map(d => d.avg),
+            borderColor: '#58a6ff',
+            backgroundColor: 'rgba(88,166,255,0.1)',
+            tension: 0.3,
+            fill: true,
+          }, {
+            label: 'Max (ms)',
+            data: latencyTime.map(d => d.max),
+            borderColor: '#d29922',
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            borderDash: [4, 4],
+          }]
+        };
+        if (latencyChart) latencyChart.destroy();
+        latencyChart = new Chart(canvas, {
+          type: 'line',
+          data: chartData,
+          options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#8b949e', font: { size: 10 } } } },
+            scales: {
+              x: { ticks: { color: '#6e7681', font: { size: 10 } }, grid: { color: '#21262d' } },
+              y: { ticks: { color: '#6e7681', font: { size: 10 } }, grid: { color: '#21262d' } },
+            }
+          }
+        });
+      }
+
+      // model table
+      const tbody = document.getElementById('model-tbody');
+      if (models.length) {
+        tbody.innerHTML = models.map(m => `
+          <tr>
+            <td class="blue">${m.model}</td>
+            <td>${m.total_requests}</td>
+            <td class="amber">${(m.avg_latency_ms / 1000).toFixed(2)}s</td>
+            <td class="green">$${m.total_cost.toFixed(6)}</td>
+          </tr>`).join('');
+      }
+
+      document.getElementById('last-updated').textContent =
+        'Updated ' + new Date().toLocaleTimeString();
+
+    } catch (err) {
+      console.error('Stats load failed:', err);
+    }
+  }
+
+  // ── keyboard shortcut ──
+  document.getElementById('input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // ── auto-resize textarea ──
+  document.getElementById('input').addEventListener('input', function () {
+    this.style.height = '40px';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+
+  document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+  // initial load + poll every 30s
+  loadStats();
+  setInterval(loadStats, 30000);
+</script>
 
 </body>
 </html>
