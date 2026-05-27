@@ -23,7 +23,48 @@ def init_db():
             status      TEXT    NOT NULL
         )
     """)
-    conn.commit()
+    
+    # Ensure agent column exists
+    try:
+        conn.execute("ALTER TABLE request_logs ADD COLUMN agent TEXT")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
+        
+    # Check if empty, and if so, seed dummy data for agents
+    count = conn.execute("SELECT COUNT(*) FROM request_logs").fetchone()[0]
+    if count == 0:
+        import random
+        from datetime import datetime, timedelta, timezone
+        
+        agents = ["Web UI", "Antigravity", "Claude Code", "OpenAI SDK"]
+        models = ["mistral", "llama3", "gemma2", "gpt-3.5-turbo"]
+        
+        now = datetime.now(timezone.utc)
+        for _ in range(50):
+            agent = random.choice(agents)
+            model = random.choice(models)
+            days_ago = random.randint(0, 4)
+            timestamp = (now - timedelta(days=days_ago, hours=random.randint(0, 23), minutes=random.randint(0, 59))).isoformat()
+            
+            prompt_t = random.randint(100, 1500)
+            comp_t = random.randint(50, 800)
+            tot_t = prompt_t + comp_t
+            
+            latency = round(random.uniform(200, 3000), 2)
+            cost = estimate_cost(model, prompt_t, comp_t)
+            
+            conn.execute("""
+                INSERT INTO request_logs
+                    (timestamp, model, latency_ms, prompt_tokens,
+                     completion_tokens, total_tokens, estimated_cost, status, agent)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                timestamp, model, latency, prompt_t,
+                comp_t, tot_t, cost, "success", agent
+            ))
+        conn.commit()
+
     conn.close()
 
 # Hypothetical OpenAI-equivalent pricing (per 1000 tokens)
@@ -43,7 +84,7 @@ def estimate_cost(model: str, prompt_tokens: int, completion_tokens: int) -> flo
 
 from datetime import datetime, timezone
 
-def log_request(model: str, latency_ms: float, tokens: dict, status: str):
+def log_request(model: str, latency_ms: float, tokens: dict, status: str, agent: str = None):
     prompt_tokens     = tokens.get("prompt_tokens", 0)
     completion_tokens = tokens.get("completion_tokens", 0)
     total_tokens      = tokens.get("total_tokens", 0)
@@ -53,13 +94,13 @@ def log_request(model: str, latency_ms: float, tokens: dict, status: str):
     conn.execute("""
         INSERT INTO request_logs
             (timestamp, model, latency_ms, prompt_tokens,
-             completion_tokens, total_tokens, estimated_cost, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+             completion_tokens, total_tokens, estimated_cost, status, agent)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         datetime.now(timezone.utc).isoformat(),
         model, latency_ms,
         prompt_tokens, completion_tokens, total_tokens,
-        cost, status
+        cost, status, agent
     ))
     conn.commit()
     conn.close()

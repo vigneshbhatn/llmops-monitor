@@ -284,6 +284,7 @@
 
     .model-table tr:last-child td { border-bottom: none; }
     .model-table .blue  { color: #58a6ff; font-weight: 500; }
+    .model-table .purple { color: #bc8cff; font-weight: 500; }
     .model-table .green { color: #3fb950; }
     .model-table .amber { color: #d29922; }
   </style>
@@ -386,6 +387,23 @@
           </tr>
         </thead>
         <tbody id="model-tbody">
+          <tr><td colspan="4" style="color:#6e7681">No data yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="stats-title">Agent breakdown</div>
+    <div class="chart-wrap">
+      <table class="model-table">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>Reqs</th>
+            <th>Tokens</th>
+            <th>Cost</th>
+          </tr>
+        </thead>
+        <tbody id="agent-tbody">
           <tr><td colspan="4" style="color:#6e7681">No data yet</td></tr>
         </tbody>
       </table>
@@ -499,11 +517,12 @@
   // ── load global stats ──
   async function loadStats() {
     try {
-      const [summary, latencyTime, alertStatus, models] = await Promise.all([
+      const [summary, latencyTime, alertStatus, models, agents] = await Promise.all([
         fetch('/stats/summary').then(r => r.json()),
         fetch('/stats/latency-over-time').then(r => r.json()),
         fetch('/stats/alert-status').then(r => r.json()),
         fetch('/stats/model-breakdown').then(r => r.json()),
+        fetch('/stats/agent-breakdown').then(r => r.json()),
       ]);
 
       // mini cards
@@ -571,6 +590,20 @@
             <td class="amber">${(m.avg_latency_ms / 1000).toFixed(2)}s</td>
             <td class="green">$${m.total_cost.toFixed(6)}</td>
           </tr>`).join('');
+      }
+
+      // agent table
+      const agentTbody = document.getElementById('agent-tbody');
+      if (agents.length) {
+        agentTbody.innerHTML = agents.map(a => `
+          <tr>
+            <td class="purple">${escapeHtml(a.agent)}</td>
+            <td>${a.total_requests}</td>
+            <td>${a.total_tokens}</td>
+            <td class="green">$${a.total_cost.toFixed(6)}</td>
+          </tr>`).join('');
+      } else {
+        agentTbody.innerHTML = `<tr><td colspan="4" style="color:#6e7681">No agent data yet</td></tr>`;
       }
 
       document.getElementById('last-updated').textContent =

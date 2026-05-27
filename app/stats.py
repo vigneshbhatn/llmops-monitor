@@ -129,3 +129,30 @@ def get_model_breakdown():
         }
         for r in rows
     ]
+
+def get_agent_breakdown():
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT
+            COALESCE(agent, 'Unknown/Direct') AS agent,
+            COUNT(*)                          AS total_requests,
+            ROUND(SUM(estimated_cost), 6)     AS total_cost,
+            ROUND(AVG(latency_ms), 2)         AS avg_latency,
+            SUM(total_tokens)                 AS total_tokens
+        FROM request_logs
+        WHERE status = 'success'
+        GROUP BY agent
+        ORDER BY total_requests DESC
+    """).fetchall()
+    conn.close()
+
+    return [
+        {
+            "agent":          r["agent"],
+            "total_requests": r["total_requests"],
+            "total_cost":     r["total_cost"],
+            "avg_latency_ms": r["avg_latency"],
+            "total_tokens":   r["total_tokens"],
+        }
+        for r in rows
+    ]
